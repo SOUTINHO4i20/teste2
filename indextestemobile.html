@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votação Simples</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Impede a rolagem da página se a imagem de fundo for maior que a tela */
+            font-family: Arial, sans-serif;
+        }
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Coloca a imagem atrás do conteúdo */
+            object-fit: cover; /* Faz a imagem cobrir toda a área */
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background-color: rgba(255, 255, 255, 0.8); /* Fundo branco com transparência para melhor legibilidade */
+            padding: 20px;
+            border-radius: 8px; /* Bordas arredondadas para a caixa */
+            position: relative; /* Para garantir que a imagem de fundo não afete o layout do conteúdo */
+            max-height: 80vh; /* Altura máxima do contêiner para permitir rolagem */
+            overflow: auto; /* Adiciona rolagem quando o conteúdo excede a altura do contêiner */
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 50%; /* Ajusta o tamanho da imagem do cabeçalho */
+            height: auto;
+            border-radius: 8px; /* Bordas arredondadas para a imagem */
+        }
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Ajusta o número de colunas baseado na largura disponível */
+            gap: 10px; /* Espaçamento entre os itens */
+            max-height: 60vh; /* Altura máxima da área de opções para permitir rolagem dentro dela */
+            overflow-y: auto; /* Adiciona rolagem vertical se necessário */
+        }
+        .option {
+            display: flex;
+            flex-direction: column; /* Alinha a imagem e o texto verticalmente */
+            align-items: center; /* Centraliza o conteúdo */
+            gap: 10px; /* Espaçamento entre a imagem e o texto */
+            cursor: pointer; /* Muda o cursor para uma mãozinha ao passar sobre o item */
+        }
+        .option img {
+            width: 100px; /* Ajuste conforme necessário */
+            height: 100px; /* Ajuste conforme necessário */
+            border-radius: 8px; /* Bordas arredondadas para a imagem */
+            transition: transform 0.3s; /* Transição suave ao passar o mouse */
+        }
+        .option:hover img {
+            transform: scale(1.05); /* Aumenta a imagem quando o mouse passa sobre o item */
+        }
+        .option input[type="radio"] {
+            display: none; /* Oculta o input de radio padrão */
+        }
+        .option label {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Espaçamento entre a imagem e o texto */
+            font-size: 14px; /* Tamanho da fonte do texto */
+            color: #333; /* Cor do texto */
+            cursor: pointer; /* Muda o cursor para uma mãozinha ao passar sobre o texto */
+            text-align: center; /* Alinha o texto ao centro */
+        }
+        .option input[type="radio"]:checked + label::before {
+            content: ''; /* Adiciona um elemento antes do texto */
+            display: inline-block;
+            width: 20px; /* Largura do indicador de seleção */
+            height: 20px; /* Altura do indicador de seleção */
+            border-radius: 50%; /* Torna o indicador redondo */
+            background-color: #007bff; /* Cor de fundo do indicador quando selecionado */
+            border: 2px solid #0056b3; /* Borda ao redor do indicador */
+            margin-right: 10px; /* Espaçamento entre o indicador e o texto */
+        }
+        .option input[type="radio"]:not(:checked) + label::before {
+            content: ''; /* Adiciona um elemento antes do texto */
+            display: inline-block;
+            width: 20px; /* Largura do indicador de seleção */
+            height: 20px; /* Altura do indicador de seleção */
+            border-radius: 50%; /* Torna o indicador redondo */
+            background-color: #fff; /* Cor de fundo do indicador quando não selecionado */
+            border: 2px solid #007bff; /* Borda ao redor do indicador */
+            margin-right: 10px; /* Espaçamento entre o indicador e o texto */
+        }
+        button {
+            background-color: #007bff; /* Cor de fundo do botão */
+            color: #fff; /* Cor do texto do botão */
+            border: none; /* Remove a borda padrão do botão */
+            padding: 10px 20px; /* Espaçamento interno do botão */
+            font-size: 16px; /* Tamanho da fonte do texto do botão */
+            font-weight: bold; /* Texto em negrito */
+            border-radius: 5px; /* Bordas arredondadas do botão */
+            cursor: pointer; /* Muda o cursor para uma mãozinha ao passar sobre o botão */
+            transition: background-color 0.3s, transform 0.2s; /* Transições suaves para efeitos de hover */
+        }
+        button:hover {
+            background-color: #0056b3; /* Cor de fundo do botão quando o mouse passa sobre ele */
+            transform: scale(1.05); /* Aumenta ligeiramente o tamanho do botão ao passar o mouse */
+        }
+        button:focus {
+            outline: none; /* Remove o contorno padrão ao focar no botão */
+        }
+
+        /* Media Query para Tablets */
+        @media (max-width: 768px) {
+            .header img {
+                max-width: 70%; /* Ajusta o tamanho da imagem do cabeçalho em tablets */
+            }
+            .option img {
+                width: 80px; /* Ajusta o tamanho das imagens das opções em tablets */
+                height: 80px; /* Ajusta o tamanho das imagens das opções em tablets */
+            }
+            .option label {
+                font-size: 12px; /* Ajusta o tamanho da fonte do texto das opções em tablets */
+            }
+        }
+
+        /* Media Query para Smartphones */
+        @media (max-width: 480px) {
+            .option img {
+                width: 60px; /* Ajusta o tamanho das imagens das opções em smartphones */
+                height: 60px; /* Ajusta o tamanho das imagens das opções em smartphones */
+            }
+            .option label {
+                font-size: 10px; /* Ajusta o tamanho da fonte do texto das opções em smartphones */
+            }
+            button {
+                font-size: 14px; /* Ajusta o tamanho da fonte do botão em smartphones */
+                padding: 8px 16px; /* Ajusta o espaçamento interno do botão em smartphones */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Imagem de fundo -->
+    <img src="https://i.imgur.com/zBCtME1.jpeg" alt="Imagem de Fundo" class="background-image">
+
+    <div class="container">
+        <div class="header">
+            <img src="https://i.imgur.com/tBDchRp.png" alt="Imagem de Cabeçalho">
+            <h1>Qual é a sua opção favorita?</h1>
+        </div>
+        <form id="voteForm">
+            <div class="options">
+                <div class="option">
+                    <input type="radio" id="option01" name="option" value="Opção 01">
+                    <label for="option01">
+                        <img src="https://i.imgur.com/kyHqpth.jpeg" alt="Opção 01">
+                        Opção 01
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option02" name="option" value="Opção 02">
+                    <label for="option02">
+                        <img src="https://i.imgur.com/r1yaPwz.jpeg" alt="Opção 02">
+                        Opção 02
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option03" name="option" value="Opção 03">
+                    <label for="option03">
+                        <img src="https://i.imgur.com/QZbop85.jpeg" alt="Opção 03">
+                        Opção 03
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option04" name="option" value="Opção 04">
+                    <label for="option04">
+                        <img src="https://i.imgur.com/OoC4cXR.jpeg" alt="Opção 04">
+                        Opção 04
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option05" name="option" value="Opção 05">
+                    <label for="option05">
+                        <img src="https://i.imgur.com/hzYPfz8.jpeg" alt="Opção 05">
+                        Opção 05
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option06" name="option" value="Opção 06">
+                    <label for="option06">
+                        <img src="https://i.imgur.com/Xpm3KeF.jpeg" alt="Opção 06">
+                        Opção 06
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option07" name="option" value="Opção 07">
+                    <label for="option07">
+                        <img src="https://i.imgur.com/BOsVdIg.jpeg" alt="Opção 07">
+                        Opção 07
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option08" name="option" value="Opção 08">
+                    <label for="option08">
+                        <img src="https://i.imgur.com/NJqIJfg.jpeg" alt="Opção 08">
+                        Opção 08
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option09" name="option" value="Opção 09">
+                    <label for="option09">
+                        <img src="https://i.imgur.com/QZbop85.jpeg" alt="Opção 09">
+                        Opção 09
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option10" name="option" value="Opção 10">
+                    <label for="option10">
+                        <img src="https://i.imgur.com/idXV3fp.jpeg" alt="Opção 10">
+                        Opção 10
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option11" name="option" value="Opção 11">
+                    <label for="option11">
+                        <img src="https://i.imgur.com/OgmdXGw.jpeg" alt="Opção 11">
+                        Opção 11
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option12" name="option" value="Opção 12">
+                    <label for="option12">
+                        <img src="https://i.imgur.com/1o1eqeX.jpeg" alt="Opção 12">
+                        Opção 12
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option13" name="option" value="Opção 13">
+                    <label for="option13">
+                        <img src="https://i.imgur.com/eoEymoa.jpeg" alt="Opção 13">
+                        Opção 13
+                    </label>
+                </div>
+                <div class="option">
+                    <input type="radio" id="option14" name="option" value="Opção 14">
+                    <label for="option14">
+                        <img src="https://i.imgur.com/eoEymoa.jpeg" alt="Opção 14">
+                        Opção 14
+                    </label>
+                </div>
+            </div>
+            <button type="button" onclick="submitVote()">Votar</button>
+        </form>
+    </div>
+
+    <!-- Adicione o script do EmailJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        emailjs.init("WPnfG1zxmZBjotFjZ"); // Substitua com seu User ID do EmailJS
+
+        function submitVote() {
+            const form = document.getElementById('voteForm');
+            const selectedOption = form.querySelector('input[name="option"]:checked');
+
+            if (selectedOption) {
+                // Enviar o voto por e-mail
+                emailjs.send("service_wzrd9ev", "template_vj2r1v8", {
+                    vote: selectedOption.value
+                }).then(function(response) {
+                    // Limpar a seleção após o envio
+                    form.reset();
+                }, function(error) {
+                    console.log('Failed...', error);
+                    // Limpar a seleção após falha, se necessário
+                    form.reset();
+                });
+            } else {
+                alert('Por favor, selecione uma opção!');
+            }
+        }
+    </script>
+</body>
+</html>
